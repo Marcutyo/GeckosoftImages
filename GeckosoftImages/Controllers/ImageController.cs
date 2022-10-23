@@ -1,12 +1,8 @@
-﻿using GeckosoftImages.Models;
-using GeckosoftImages.Requests;
-using GeckosoftImages.Services;
+﻿using GeckosoftImages.Requests;
 using GeckosoftImages.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using GeckosoftImages.Responses;
-using System.Net.Mime;
 using GeckosoftImages.Exceptions;
-using Microsoft.AspNetCore.Connections.Features;
 using System.ComponentModel.DataAnnotations;
 
 namespace GeckosoftImages.Controllers
@@ -29,6 +25,7 @@ namespace GeckosoftImages.Controllers
         [Consumes("multipart/form-data")]
         [Produces("application/json")]
         [ProducesResponseType(200, Type = typeof(ImageResponse))]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity, Type = typeof(ValidationProblemDetails))]
         public async Task<IActionResult> UploadImage([FromForm] ImageRequest imageRequest)
         {
             var imageResponse = await _imageService.UploadImage(imageRequest);
@@ -36,12 +33,15 @@ namespace GeckosoftImages.Controllers
         }
 
         /// <summary>
-        /// Get images file names as a list
+        /// Get images ordered by name
         /// </summary>
         [HttpGet]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImagesEnumerableResponse))]
         public IActionResult GetImages()
         {
-            throw new NotImplementedException();
+            var images = _imageService.GetImages();
+            return Ok(images);
         }
 
         /// <summary>
@@ -51,12 +51,13 @@ namespace GeckosoftImages.Controllers
         [Route("{name}")]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ImageResponse))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ImageResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity, Type = typeof(ValidationProblemDetails))]
         public async Task<IActionResult> ResizeImage(
             string name,
-            [Range(0, int.MaxValue)] int width = 0,
-            [Range(0, int.MaxValue)] int height = 0
+            [Range(0, int.MaxValue)] int width,
+            [Range(0, int.MaxValue)] int height
             )
         {
             ImageResponse imageResponse;
@@ -66,23 +67,11 @@ namespace GeckosoftImages.Controllers
             }
             catch (FileNotFoundException e)
             {
-                imageResponse = new ImageResponse { 
-                    Success = false,
-                    Status = StatusCodes.Status404NotFound,
-                    Detail = e.Message,
-                    FileName = name
-                };
-                return NotFound(imageResponse);
+                return NotFound(new ErrorResponse(e));
             }
             catch (TooManyFilesException e)
             {
-                imageResponse = new ImageResponse {
-                    Success = false,
-                    Status = StatusCodes.Status400BadRequest,
-                    Detail = e.Message,
-                    FileName = name
-                };
-                return BadRequest(imageResponse);
+                return BadRequest(new ErrorResponse(e));
             }
             return Ok(imageResponse);
         }
@@ -92,9 +81,26 @@ namespace GeckosoftImages.Controllers
         /// </summary>
         [HttpDelete]
         [Route("{name}")]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
         public IActionResult DeleteImage(string name)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _imageService.DeleteImageByName(name);
+            }
+            catch (FileNotFoundException e)
+            {
+                return NotFound(new ErrorResponse(e));
+            }
+            catch (TooManyFilesException e)
+            {
+                return BadRequest(new ErrorResponse(e));
+            }
+
+            return Ok(new ImageResponse());
         }
     }
 }

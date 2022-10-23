@@ -2,9 +2,9 @@
 using GeckosoftImages.Requests;
 using GeckosoftImages.Responses;
 using GeckosoftImages.Interfaces;
-using System.Drawing;
 using GeckosoftImages.Exceptions;
-using System.Drawing.Imaging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace GeckosoftImages.Services
 {
@@ -27,34 +27,44 @@ namespace GeckosoftImages.Services
 
             await imageRequest.Image.CopyToAsync(new FileStream(filePath, FileMode.Create));
 
-            return new ImageResponse { Success = true, FilePath = filePath };
+            return new ImageResponse { Success = true, FilePath = filePath, FileName = uniqueFileName};
         }
 
-        public Task<ImageResponse> ResizeImage(string name, int width, int height)
+        public async Task<ImageResponse> ResizeImage(string name, int width, int height)
         {
-            var image = GetImageByName(name);
-            var resizedImage = new Bitmap(image, new Size(width, height));
+            string imgPath = GetImagePathByName(name);
 
-            using var imageStream = new MemoryStream();
-            resizedImage.Save(imageStream, ImageFormat.Jpeg);
-            var imageBytes = imageStream.ToArray();
+            string imgFileName = Path.GetFileNameWithoutExtension(imgPath);
+            string imgFileExt = Path.GetExtension(imgPath);
+            string? directoryName = Path.GetDirectoryName(imgPath);
+            string tmpImg = Path.Combine(directoryName, "temp" + imgFileExt);
 
-            throw new NotImplementedException();
+            using (var imgStream = File.OpenRead(imgPath))
+            {
+                var image = await Image.LoadAsync(imgStream);
+                image.Mutate(x => x.Resize(width, height));
+                await image.SaveAsync(tmpImg);
+            }
+            
+            File.Move(tmpImg, imgPath, overwrite: true);
+
+            return new ImageResponse { Success = true, FileName = imgFileName, FilePath = imgPath };
         }
 
-        private Image GetImageByName(string name)
+        private string GetImagePathByName(string name)
         {
             var uploads = Path.Combine(_environment.WebRootPath, "uploads");
 
-            string[] imagePaths = Directory.GetFiles(uploads, searchPattern: name + ".*");
-            if (imagePaths.Length > 1)
+            string[] imgPaths = Directory.GetFiles(uploads, searchPattern: name + ".*");
+            if (imgPaths.Length == 0)
+                throw new FileNotFoundException($"Cannot find existing file with name '{name}'");
+            if (imgPaths.Length > 1)
             {
-                throw new TooManyFilesException();
+                throw new TooManyFilesException($"More than 1 file with name '{name}' exists. Cannot handle this request");
             }
-            string imagePath = imagePaths.First();
+            string imgPath = imgPaths.First();
 
-            var image = Image.FromStream(new FileStream(imagePath, FileMode.Open));
-            return image;
+            return imgPath;
         }
     }
 }

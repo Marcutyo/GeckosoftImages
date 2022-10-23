@@ -45,7 +45,10 @@ namespace GeckosoftImages.Services
 
             await imageRequest.Image.CopyToAsync(new FileStream(filePath, FileMode.Create));
 
-            return new ImageResponse { Success = true, FilePath = filePath, FileName = uniqueFileName};
+        public void DeleteImageByName(string name)
+        {
+            string imgPath = GetImagePathByName(name);
+            File.Delete(imgPath);
         }
 
         public async Task<ImageResponse> ResizeImage(string name, int width, int height)

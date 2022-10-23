@@ -7,6 +7,7 @@ namespace GeckosoftImages.Interfaces
     {
         Task<ImageResponse> UploadImage(ImageRequest imageRequest);
         Task<ImageResponse> ResizeImage(string name, int width, int height);
-        IEnumerable<string> GetImages();
+        ImagesEnumerableResponse GetImages();
+        void DeleteImageByName(string name);
     }
 }

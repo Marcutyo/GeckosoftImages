@@ -1,5 +1,7 @@
 using GeckosoftImages.Interfaces;
 using GeckosoftImages.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 
@@ -25,6 +27,22 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddScoped<IImageService, ImageService>();
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        {
+            var problemDetailsFactory = context.HttpContext.RequestServices.GetRequiredService<ProblemDetailsFactory>();
+            ValidationProblemDetails problemDetails = problemDetailsFactory.CreateValidationProblemDetails(context.HttpContext, context.ModelState, 422);
+
+            return new ObjectResult(problemDetails)
+            {
+                StatusCode = 422
+            };
+        }
+    };
+});
 
 var app = builder.Build();
 

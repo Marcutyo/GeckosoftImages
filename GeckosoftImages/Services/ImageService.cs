@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.Processing;
 using System.Net;
 using System.Xml.Linq;
 using NuGet.Packaging.Signing;
+using GeckosoftImages.Models;
 
 namespace GeckosoftImages.Services
 {
@@ -23,16 +24,18 @@ namespace GeckosoftImages.Services
             _uploadsPath = Path.Combine(_environment.WebRootPath, "uploads");
         }
 
-        public IEnumerable<string> GetImages()
+        public ImagesEnumerableResponse GetImages()
         {
             IEnumerable<string> imgPaths = Directory.EnumerateFiles(_uploadsPath);
 
             var imgsFileName = from imgPath in imgPaths
                                orderby imgPath
-                               select Path.GetFileNameWithoutExtension(imgPath)
+                               select new ImageFileModel(
+                                   Path.GetFileNameWithoutExtension(imgPath)
+                                   )
                                ;
 
-            return imgsFileName;
+            return new ImagesEnumerableResponse { Success = true, Data = imgsFileName };
         }
 
         public async Task<ImageResponse> UploadImage(ImageRequest imageRequest)
@@ -43,7 +46,13 @@ namespace GeckosoftImages.Services
 
             Directory.CreateDirectory(uploads);
 
-            await imageRequest.Image.CopyToAsync(new FileStream(filePath, FileMode.Create));
+            using var imgFileStream = new FileStream(filePath, FileMode.Create);
+            await imageRequest.Image.CopyToAsync(imgFileStream);
+
+            var imageModel = new ImageFileModel(uniqueFileName);
+
+            return new ImageResponse { Success = true, Data = imageModel};
+        }
 
         public void DeleteImageByName(string name)
         {
@@ -64,12 +73,14 @@ namespace GeckosoftImages.Services
             {
                 var image = await Image.LoadAsync(imgStream);
                 image.Mutate(x => x.Resize(width, height));
-                await image.SaveAsync(tmpImg);
+                image.SaveAsync(tmpImg);
             }
             
             File.Move(tmpImg, imgPath, overwrite: true);
 
-            return new ImageResponse { Success = true, FileName = imgFileName, FilePath = imgPath };
+            var imageModel = new ImageFileModel(imgFileName);
+
+            return new ImageResponse { Success = true, Data = imageModel };
         }
 
         private string GetImagePathByName(string name)

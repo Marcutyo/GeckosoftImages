@@ -1,7 +1,9 @@
-﻿namespace GeckosoftImages.Responses
+﻿using GeckosoftImages.Models;
+using System.Text.Json.Serialization;
+
+namespace GeckosoftImages.Responses
 {
-    public class ImageResponse : BaseResponse
+    public class ImageResponse : BaseResponse<ImageFileModel>
     {
-        public string FilePath { get; set; }
     }
 }

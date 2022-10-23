@@ -2,17 +2,9 @@
 
 namespace GeckosoftImages.Responses
 {
-    public class BaseResponse
+    public class BaseResponse<T>
     {
-        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-        public bool Success { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? ErrorCode { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Error { get; set; }
-
-
+        public bool Success { get; set; } = true;
+        public T? Data { get; set; }
     }
 }

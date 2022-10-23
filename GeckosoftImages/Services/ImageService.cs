@@ -5,16 +5,34 @@ using GeckosoftImages.Interfaces;
 using GeckosoftImages.Exceptions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using System.Net;
+using System.Xml.Linq;
+using NuGet.Packaging.Signing;
 
 namespace GeckosoftImages.Services
 {
     public class ImageService : IImageService
     {
         private readonly IWebHostEnvironment _environment;
+        private readonly string _uploadsPath;
 
         public ImageService(IWebHostEnvironment environment)
         {
             _environment = environment;
+
+            _uploadsPath = Path.Combine(_environment.WebRootPath, "uploads");
+        }
+
+        public IEnumerable<string> GetImages()
+        {
+            IEnumerable<string> imgPaths = Directory.EnumerateFiles(_uploadsPath);
+
+            var imgsFileName = from imgPath in imgPaths
+                               orderby imgPath
+                               select Path.GetFileNameWithoutExtension(imgPath)
+                               ;
+
+            return imgsFileName;
         }
 
         public async Task<ImageResponse> UploadImage(ImageRequest imageRequest)
@@ -53,9 +71,7 @@ namespace GeckosoftImages.Services
 
         private string GetImagePathByName(string name)
         {
-            var uploads = Path.Combine(_environment.WebRootPath, "uploads");
-
-            string[] imgPaths = Directory.GetFiles(uploads, searchPattern: name + ".*");
+            string[] imgPaths = Directory.GetFiles(_uploadsPath, searchPattern: name + ".*");
             if (imgPaths.Length == 0)
                 throw new FileNotFoundException($"Cannot find existing file with name '{name}'");
             if (imgPaths.Length > 1)

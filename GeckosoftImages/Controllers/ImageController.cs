@@ -12,10 +12,14 @@ namespace GeckosoftImages.Controllers
     public class ImageController : ControllerBase
     {
         private readonly IImageService _imageService;
+        private readonly IBackgroundQueue<ImageResizeRequest> _queue;
 
-        public ImageController(IImageService imageService)
+        public ImageController(
+            IImageService imageService,
+            IBackgroundQueue<ImageResizeRequest> queue)
         {
             _imageService = imageService;
+            _queue = queue;
         }
 
         /// <summary>
@@ -50,20 +54,20 @@ namespace GeckosoftImages.Controllers
         [HttpPut]
         [Route("{name}")]
         [Produces("application/json")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageResponse))]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity, Type = typeof(ValidationProblemDetails))]
-        public async Task<IActionResult> ResizeImage(
+        public IActionResult ResizeImage(
             string name,
-            [Range(0, int.MaxValue)] int width,
-            [Range(0, int.MaxValue)] int height
+            [Range(1, int.MaxValue)] int width,
+            [Range(1, int.MaxValue)] int height
             )
         {
-            ImageResponse imageResponse;
+            string imgPath;
             try
             {
-                imageResponse = await _imageService.ResizeImage(name, width, height);
+                imgPath = _imageService.GetImagePathByName(name);;
             }
             catch (FileNotFoundException e)
             {
@@ -73,7 +77,11 @@ namespace GeckosoftImages.Controllers
             {
                 return BadRequest(new ErrorResponse(e));
             }
-            return Ok(imageResponse);
+
+            var imageResizeRequest = new ImageResizeRequest(imgPath, width, height);
+
+            _queue.Enqueue(imageResizeRequest);
+            return Accepted();
         }
 
         /// <summary>

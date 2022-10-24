@@ -1,5 +1,4 @@
 ﻿using GeckosoftImages.Models;
-using System.Text.Json.Serialization;
 
 namespace GeckosoftImages.Responses
 {

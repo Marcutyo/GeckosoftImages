@@ -1,15 +1,11 @@
-﻿using GeckosoftImages.Helpers;
+﻿using GeckosoftImages.Exceptions;
+using GeckosoftImages.Helpers;
+using GeckosoftImages.Interfaces;
+using GeckosoftImages.Models;
 using GeckosoftImages.Requests;
 using GeckosoftImages.Responses;
-using GeckosoftImages.Interfaces;
-using GeckosoftImages.Exceptions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using System.Net;
-using System.Xml.Linq;
-using NuGet.Packaging.Signing;
-using GeckosoftImages.Models;
-using System.Collections.Concurrent;
 
 namespace GeckosoftImages.Services
 {
@@ -52,7 +48,7 @@ namespace GeckosoftImages.Services
 
             var imageModel = new ImageFileModel(uniqueFileName);
 
-            return new ImageResponse { Success = true, Data = imageModel};
+            return new ImageResponse { Success = true, Data = imageModel };
         }
 
         public void DeleteImageByName(string name)
@@ -77,7 +73,7 @@ namespace GeckosoftImages.Services
 
                 await image.SaveAsync(tmpImg);
             }
-            
+
             File.Move(tmpImg, imgPath, overwrite: true);
 
             var imageModel = new ImageFileModel(imgFileName);

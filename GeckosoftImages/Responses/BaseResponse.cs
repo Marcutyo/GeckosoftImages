@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace GeckosoftImages.Responses
+﻿namespace GeckosoftImages.Responses
 {
     public class BaseResponse<T>
     {

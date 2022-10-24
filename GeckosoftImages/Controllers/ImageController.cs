@@ -1,8 +1,8 @@
-﻿using GeckosoftImages.Requests;
+﻿using GeckosoftImages.Exceptions;
 using GeckosoftImages.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+using GeckosoftImages.Requests;
 using GeckosoftImages.Responses;
-using GeckosoftImages.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace GeckosoftImages.Controllers
@@ -67,7 +67,7 @@ namespace GeckosoftImages.Controllers
             string imgPath;
             try
             {
-                imgPath = _imageService.GetImagePathByName(name);;
+                imgPath = _imageService.GetImagePathByName(name);
             }
             catch (FileNotFoundException e)
             {

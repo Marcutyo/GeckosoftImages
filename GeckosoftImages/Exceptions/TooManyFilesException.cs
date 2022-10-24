@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace GeckosoftImages.Exceptions
+﻿namespace GeckosoftImages.Exceptions
 {
     public class TooManyFilesException : Exception
     {

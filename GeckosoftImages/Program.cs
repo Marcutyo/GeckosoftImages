@@ -1,16 +1,19 @@
+using GeckosoftImages.Async;
 using GeckosoftImages.Interfaces;
+using GeckosoftImages.Requests;
 using GeckosoftImages.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -21,12 +24,17 @@ builder.Services.AddSwaggerGen(options =>
         Description = "An ASP.NET Core Web API for uploading and resizing images"
     });
 
-    // using System.Reflection;
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
 builder.Services.AddScoped<IImageService, ImageService>();
+
+builder.Services
+    .AddHostedService<ImageResizeBackgroundWorker>()
+    .AddSingleton<IBackgroundQueue<ImageResizeRequest>, BackgroundQueue<ImageResizeRequest>>();
+
+builder.Services.AddSingleton<IBackgroundQueue<ImageResizeRequest>, BackgroundQueue<ImageResizeRequest>>();
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -46,7 +54,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

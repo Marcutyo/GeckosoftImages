@@ -5,11 +5,6 @@ namespace GeckosoftImages.Requests
     public class ImageRequest
     {
         [Required]
-        public IFormFile Image { get; set; }
-
-        public ImageRequest(IFormFile image)
-        {
-            Image = image;
-        }
+        public IFormFile? Image { get; set; }
     }
 }

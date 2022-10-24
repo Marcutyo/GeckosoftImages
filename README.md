@@ -5,14 +5,14 @@
 Simple web app to upload your images to a web folder. You may then check all of the images' file names, delete an image, resize an image.
 
 ## Summary
-- [Prerequisites](#-prerequisites)
-- [Run the app](#-run-the-app)
-- [Description](#-description)
-- [REST API](#-rest-api)
-	- [Upload a new image](#-upload-a-new-image)
-	- [Get all the images](#-get-all-the-images-ordered-by-name)
-	- [Delete an image](#-delete-an-image)
-	- [Resize an image](#-resize-an-image)
+- [Prerequisites](#prerequisites)
+- [Run the app](#run-the-app)
+- [Description](#structure)
+- [REST API](#rest-api)
+	- [POST Upload a new image](#upload-a-new-image)
+	- [GET all the images](#get-all-the-images-ordered-by-name)
+	- [DELETE an image](#delete-an-image)
+	- [PUT Resize an image](#resize-an-image)
 
 ## Prerequisites
 Make sure you have the [latest version of .NET](https://dotnet.microsoft.com/en-us/download "latest version of .NET") installed.
@@ -27,7 +27,7 @@ If you're on Linux, see the documentation for your Linux distribution on how to 
 
 The app is ready-to-run, you just need to launch `dotnet run` in project root and you're good to go. Kestrel server is listening on port 7027.
 
-	dotnet run[[1]][REST Api]
+	dotnet run
 
 Go to `localhost:7027/swagger` to read the OpenAPI documentation and test the endpoints.
 
@@ -47,7 +47,7 @@ graph LR
     D[Background worker] -->|picks up task| C
 ```
 
-## Persistency
+## Persistence
 
 Persistence is provided trough I/O operations.
 Uploads are stored under web root folder, specifically at `wwwroot/uploads`.
@@ -173,26 +173,26 @@ Trying to delete an image with the same file name but different extension, will 
 
 ### Error Response(s)
 ```
-	HTTP/1.1 400 Bad Request
-	Date: Sun, 23 Oct 2022 18:05:38 GMT
-	Status: 400 Bad Request
-	Content-Type: application/json
+HTTP/1.1 400 Bad Request
+Date: Sun, 23 Oct 2022 18:05:38 GMT
+Status: 400 Bad Request
+Content-Type: application/json
 
-	{
-	  "success": false,
-	  "detail": "More than 1 file with name 'foobar' exists. Cannot handle this request"
-	}
+{
+  "success": false,
+  "detail": "More than 1 file with name 'foobar' exists. Cannot handle this request"
+}
 ```
 ```
-	HTTP/1.1 404 Not Found
-	Date: Sun, 23 Oct 2022 18:05:38 GMT
-	Status: 404 Not Found
-	Content-Type: application/json
+HTTP/1.1 404 Not Found
+Date: Sun, 23 Oct 2022 18:05:38 GMT
+Status: 404 Not Found
+Content-Type: application/json
 
-	{
-	  "success": false,
-	  "detail": "Cannot find existing file with name 'foobar'"
-	}
+{
+  "success": false,
+  "detail": "Cannot find existing file with name 'foobar'"
+}
 ```
 
 ## Resize an image
@@ -216,49 +216,49 @@ Trying to delete an image with the same file name but different extension, will 
 
 ### Success Response
 
-    HTTP/1.1 202 Accepted
-    Date: Sun, 23 Oct 2022 18:05:38 GMT
-    Status: 202 Accepted
+	HTTP/1.1 202 Accepted
+	Date: Sun, 23 Oct 2022 18:05:38 GMT
+	Status: 202 Accepted
 
 ### Error Response(s)
 
 ```
-	HTTP/1.1 400 Bad Request
-	Date: Sun, 23 Oct 2022 18:05:38 GMT
-	Status: 400 Bad Request
-	Content-Type: application/json
+HTTP/1.1 400 Bad Request
+Date: Sun, 23 Oct 2022 18:05:38 GMT
+Status: 400 Bad Request
+Content-Type: application/json
 
-	{
-	  "success": false,
-	  "detail": "More than 1 file with name 'foobar' exists. Cannot handle this request"
-	}
+{
+  "success": false,
+  "detail": "More than 1 file with name 'foobar' exists. Cannot handle this request"
+}
 ```
 ```
-	HTTP/1.1 404 Not Found
-	Date: Sun, 23 Oct 2022 18:05:38 GMT
-	Status: 404 Not Found
-	Content-Type: application/json
+HTTP/1.1 404 Not Found
+Date: Sun, 23 Oct 2022 18:05:38 GMT
+Status: 404 Not Found
+Content-Type: application/json
 
-	{
-	  "success": false,
-	  "detail": "Cannot find existing file with name 'foobar'"
-	}
+{
+  "success": false,
+  "detail": "Cannot find existing file with name 'foobar'"
+}
 ```
 ```
-	HTTP/1.1 422 Unprocessable Entity
-	Date: Sun, 23 Oct 2022 18:05:38 GMT
-	Status: 422 Unprocessable Entity
-	Content-Type: application/json
+HTTP/1.1 422 Unprocessable Entity
+Date: Sun, 23 Oct 2022 18:05:38 GMT
+Status: 422 Unprocessable Entity
+Content-Type: application/json
 
-	{
-		"type": "https://tools.ietf.org/html/rfc4918#section-11.2",
-		"title": "One or more validation errors occurred.",
-		"status": 422,
-		"traceId": "00-3239bb21056c7d2a52bccc029c71fd57-eb6d63f288566993-00",
-		"errors": {
-			"Image": [
-				"The Image field is required."
-			]
-		}
-	}
+{
+  "type": "https://tools.ietf.org/html/rfc4918#section-11.2",
+  "title": "One or more validation errors occurred.",
+  "status": 422,
+  "traceId": "00-3239bb21056c7d2a52bccc029c71fd57-eb6d63f288566993-00",
+  "errors": {
+    "Image": [
+      "The Image field is required."
+    ]
+  }
+}
 ```

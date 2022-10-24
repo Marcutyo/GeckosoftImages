@@ -6,8 +6,9 @@ namespace GeckosoftImages.Interfaces
     public interface IImageService
     {
         Task<ImageResponse> UploadImage(ImageRequest imageRequest);
-        Task<ImageResponse> ResizeImage(string name, int width, int height);
+        Task<ImageResponse> ResizeImage(ImageResizeRequest imageResizeRequest);
         ImagesEnumerableResponse GetImages();
         void DeleteImageByName(string name);
+        string GetImagePathByName(string name);
     }
 }

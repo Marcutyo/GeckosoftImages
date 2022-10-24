@@ -9,6 +9,7 @@ using System.Net;
 using System.Xml.Linq;
 using NuGet.Packaging.Signing;
 using GeckosoftImages.Models;
+using System.Collections.Concurrent;
 
 namespace GeckosoftImages.Services
 {
@@ -60,9 +61,9 @@ namespace GeckosoftImages.Services
             File.Delete(imgPath);
         }
 
-        public async Task<ImageResponse> ResizeImage(string name, int width, int height)
+        public async Task<ImageResponse> ResizeImage(ImageResizeRequest request)
         {
-            string imgPath = GetImagePathByName(name);
+            string imgPath = request.ImagePath;
 
             string imgFileName = Path.GetFileNameWithoutExtension(imgPath);
             string imgFileExt = Path.GetExtension(imgPath);
@@ -72,8 +73,9 @@ namespace GeckosoftImages.Services
             using (var imgStream = File.OpenRead(imgPath))
             {
                 var image = await Image.LoadAsync(imgStream);
-                image.Mutate(x => x.Resize(width, height));
-                image.SaveAsync(tmpImg);
+                image.Mutate(x => x.Resize(request.Width, request.Height));
+
+                await image.SaveAsync(tmpImg);
             }
             
             File.Move(tmpImg, imgPath, overwrite: true);
@@ -83,7 +85,7 @@ namespace GeckosoftImages.Services
             return new ImageResponse { Success = true, Data = imageModel };
         }
 
-        private string GetImagePathByName(string name)
+        public string GetImagePathByName(string name)
         {
             string[] imgPaths = Directory.GetFiles(_uploadsPath, searchPattern: name + ".*");
             if (imgPaths.Length == 0)
